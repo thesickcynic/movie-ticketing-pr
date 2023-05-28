@@ -29,3 +29,8 @@ It would also make sense to index all the columns that are used as foreign keys 
 
 ## ER Diagram
 ![ERDiagram](ERDiagram.png)
+
+## Changelog
+1. Moved interactions with DB to service components.
+2. Changed comments to /**/ format and used it for new comments.
+3. Changed the name of the movie2Dor3D column to movieExperience.
