@@ -11,12 +11,15 @@ db.City = require("./cities");
 db.Movie = require("./movies");
 db.Theater = require("./theaters");
 db.Showing = require("./showings");
+db.Seatmap = require("./seatMaps");
+db.Ticket = require("./tickets");
+db.User = require("./users");
 
 Object.keys(db).forEach(key => {
     if(db[key] && db[key].associate) {
         db[key].associate(db);
     }
 });
+// db.sequelize.sync({alter: true});
 console.log("Came here");
-db.sequelize.sync({alter: true});
 module.exports = db;

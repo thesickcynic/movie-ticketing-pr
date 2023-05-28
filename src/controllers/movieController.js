@@ -5,6 +5,7 @@ const City = require("../models/cities");
 const Movie = require("../models/movies");
 const Theater = require("../models/theaters");
 const Showing = require("../models/showings");
+const writeToCache = require("../service/writeToCache").writeToCache;
 
 const sevenDaysFromNow = new Date(new Date().setDate(new Date().getDate() + 7));
 
@@ -52,6 +53,7 @@ exports.getValidDates = async (req,res) => {
             }
         });
         const theaterDates = values.toJSON().Theaters[0].Showings;
+        //Getting only the distinct dates.
         const uniqueDates = Array.from(new Set(theaterDates.map((date) => new Date(date.showingDate).toDateString())));
         return res.status(200).json(uniqueDates);
     }
@@ -83,7 +85,7 @@ exports.getShowingsByTheaterAndDate = async (req,res) => {
                 include : [{
                     model: Showing, 
                     required:true,
-                    attributes: ['showingAudio', 'showingSubtitleLanguage', 'showingDate'],
+                    attributes: ['id','showingAudio', 'showingSubtitleLanguage', 'showingDate'],
                     where: {
                         showingDate: {
                             [Op.gte]: beginningOfQueryDate,
@@ -101,6 +103,14 @@ exports.getShowingsByTheaterAndDate = async (req,res) => {
             }
         });
         const movies = values.toJSON();
+        const writeToCacheKey = {
+            cityid: req.params.cityid,
+            theaterid: req.params.theaterid,
+            queryDate: queryDate,
+        }
+        
+        writeToCache(writeToCacheKey, movies);
+
         return res.status(200).json(movies);
     }
     catch(error){
@@ -108,4 +118,3 @@ exports.getShowingsByTheaterAndDate = async (req,res) => {
     }
     
 }
-// module.exports = getTheaters;
