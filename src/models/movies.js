@@ -16,7 +16,7 @@ const Movie = Sequelize.define('Movie', {
         type: Datatypes.STRING(100),
         allowNull: false
     },
-    movie2DOR3d: {
+    movieExperience: {
         type: Datatypes.STRING(2),
         allowNull: false
     }

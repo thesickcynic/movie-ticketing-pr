@@ -96,7 +96,7 @@ exports.getShowingsByTheaterAndDate = async (cityid, theaterid, queryDate) => {
                     ], 
                     include: [{
                         model: Movie,
-                        attributes:['movieName', 'movieLanguage', 'movie2DOR3D']
+                        attributes:['movieName', 'movieLanguage', 'movieExperience']
                     }]
                 }]
             }
