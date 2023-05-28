@@ -6,20 +6,12 @@ const Movie = require("../models/movies");
 const Theater = require("../models/theaters");
 const Showing = require("../models/showings");
 const writeToCache = require("../service/writeToCache").writeToCache;
-
-const sevenDaysFromNow = new Date(new Date().setDate(new Date().getDate() + 7));
+const {getTheaters, getValidDates, getShowingsByTheaterAndDate} = require("../service/movieService");
 
 exports.getTheaters = async (req, res) => {
     try{
-        const city = await City.findByPk(req.params.cityid, {
-            include: {
-                model: Theater,
-                required: true,
-                as: 'Theaters',
-                attributes: ['id', 'theaterName']
-            }
-        });
-        const theaterList = city.toJSON().Theaters;
+        const cityid = req.params.cityid;
+        const theaterList = await getTheaters(cityid);
         return res.status(200).json(theaterList);
     }
     catch(error) {
@@ -29,33 +21,10 @@ exports.getTheaters = async (req, res) => {
 
 exports.getValidDates = async (req,res) => {
     try{
-        const values = await City.findByPk(req.params.cityid, {
-            include: {
-                model: Theater,
-                required: true,
-                where: {
-                    id: req.params.theaterid
-                },
-                include : [{
-                    model: Showing, 
-                    required:true,
-                    attributes: ['id', 'showingDate'],
-                    where: {
-                        showingDate: {
-                            [Op.gte]: new Date(),
-                            [Op.lte]: sevenDaysFromNow
-                        }
-                    },
-                    order: [
-                        ['showingDate', 'ASC']
-                    ]
-                }]
-            }
-        });
-        const theaterDates = values.toJSON().Theaters[0].Showings;
-        //Getting only the distinct dates.
-        const uniqueDates = Array.from(new Set(theaterDates.map((date) => new Date(date.showingDate).toDateString())));
-        return res.status(200).json(uniqueDates);
+        const cityid = req.params.cityid;
+        const theaterid = req.params.theaterid;
+        const validDates = await getValidDates(cityid, theaterid);
+        return res.status(200).json(validDates);
     }
     catch(error){
         return res.status(500).json({message: error.message});
@@ -70,47 +39,10 @@ exports.getShowingsByTheaterAndDate = async (req,res) => {
             +req.params.month - 1,
             +req.params.day
         )
-        //Since we have to compare with the Calendar Date and not the exact time-stamps
-        const beginningOfQueryDate = moment(queryDate, 'YYYY-MM-DD').startOf('day');
-        const endOfQueryDate = moment(queryDate, 'YYYY-MM-DD').endOf('day');
+        const cityid = req.params.cityid;
+        const theaterid = req.params.theaterid;
 
-        const values = await City.findByPk(req.params.cityid, {
-            include: {
-                model: Theater,
-                required: true,
-                attributes: ['theaterName'],
-                where: {
-                    id: req.params.theaterid
-                },
-                include : [{
-                    model: Showing, 
-                    required:true,
-                    attributes: ['id','showingAudio', 'showingSubtitleLanguage', 'showingDate'],
-                    where: {
-                        showingDate: {
-                            [Op.gte]: beginningOfQueryDate,
-                            [Op.lte]: endOfQueryDate
-                        }
-                    },
-                    order: [
-                        ['showingDate', 'ASC']
-                    ], 
-                    include: [{
-                        model: Movie,
-                        attributes:['movieName', 'movieLanguage', 'movie2DOR3D']
-                    }]
-                }]
-            }
-        });
-        const movies = values.toJSON();
-        const writeToCacheKey = {
-            cityid: req.params.cityid,
-            theaterid: req.params.theaterid,
-            queryDate: queryDate,
-        }
-        
-        writeToCache(writeToCacheKey, movies);
-
+        const movies = await getShowingsByTheaterAndDate(cityid, theaterid, queryDate);
         return res.status(200).json(movies);
     }
     catch(error){
