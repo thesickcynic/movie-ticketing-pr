@@ -28,4 +28,4 @@ It would also make sense to index all the columns that are used as foreign keys 
 | `seatList`      | `array` | **Required**. IDs of the seats to book.|
 
 ## ER Diagram
-[!ERDiagram](ERDiagram.png)
+![ERDiagram](ERDiagram.png)
